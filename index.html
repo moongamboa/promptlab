@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptLab – Estudio de Prompts</title>
+  <style>
+    :root {
+      --bg: #1a1a1f;
+      --bg2: #222228;
+      --bg3: #2a2a32;
+      --accent: #c4788a;
+      --accent2: #d4899b;
+      --glow: #e8b4be;
+      --text: #ede8ea;
+      --muted: #9a8f93;
+      --border: #3a3040;
+      --card: #20202a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header / Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .logo-text { line-height: 1.1; }
+    .logo-text strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .logo-text span {
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .nav-badge {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 72px 24px 60px;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(196,120,138,0.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 5px 16px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--text);
+      max-width: 700px;
+      margin: 0 auto 16px;
+      letter-spacing: -0.5px;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--accent), var(--glow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Cards grid ── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .tool-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    .tool-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(196,120,138,0.15);
+    }
+    .tool-card.soon {
+      opacity: 0.6;
+      cursor: default;
+      pointer-events: none;
+    }
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--glow));
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .tool-card:hover::before { opacity: 1; }
+
+    .tool-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+    .tool-card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .tool-card p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+    .tool-link {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .tool-link svg {
+      transition: transform 0.15s;
+    }
+    .tool-card:hover .tool-link svg { transform: translateX(4px); }
+    .soon-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 3px 8px;
+      border-radius: 8px;
+      align-self: flex-start;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      .hero { padding: 48px 20px 40px; }
+      .tools-grid { padding: 0 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">
+    <div class="logo-icon">✦</div>
+    <div class="logo-text">
+      <strong>PromptLab</strong>
+      <span>por Liss</span>
+    </div>
+  </a>
+  <div class="nav-badge">🔒 Tus datos viven solo en este navegador</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Estudio de Ingeniería de Prompts</div>
+  <h1>Diseña, prueba y guarda<br/><span>tus mejores prompts</span></h1>
+  <p>Tres herramientas, una sola biblioteca local. Elige el entorno que mejor se ajuste a lo que quieres construir hoy.</p>
+</section>
+
+<div class="tools-grid">
+
+  <!-- Constructor Semántico → tu propia página -->
+  <a class="tool-card" href="prompt-generator.html">
+    <div class="tool-icon">🏗️</div>
+    <h2>Constructor Semántico</h2>
+    <p>Generación One-Shot con etiquetas XML. Diccionario de roles, tareas, contexto, tono y formato listos para usar.</p>
+    <div class="tool-link">
+      Abrir entorno
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+  </a>
+
+  <!-- Creador de Agentes → agentes.html -->
+  <a class="tool-card" href="agentes.html">
+    <div class="tool-icon">🤖</div>
+    <h2>Creador de Agentes</h2>
+    <p>Diseña identidades persistentes: misión, guardrails y herramientas. Guarda, edita y exporta cada agente.</p>
+    <div class="tool-link">
+      Abrir entorno
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+  </a>
+
+  <!-- Constructor Rápido → próximamente -->
+  <div class="tool-card soon">
+    <div class="tool-icon">⚡</div>
+    <h2>Constructor Rápido</h2>
+    <p>El camino más corto: rol, tarea, contexto, tono y formato. Ideal para resolver algo cotidiano en un minuto.</p>
+    <div class="soon-badge">Próximamente</div>
+  </div>
+
+</div>
+
+<footer>
+  PromptLab · Hecho con 💗 por Liss · Todos los datos se guardan localmente en tu navegador
+</footer>
+
+</body>
+</html>
