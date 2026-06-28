@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptLab – Creador de Agentes</title>
+  <style>
+    :root {
+      --bg:#1a1a1f; --bg2:#222228; --bg3:#2a2a32;
+      --accent:#c4788a; --accent2:#d4899b; --glow:#e8b4be;
+      --text:#ede8ea; --muted:#9a8f93; --border:#3a3040;
+      --success:#7db89a; --danger:#c47878; --card:#20202a;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:60px; }
+
+    header { background:linear-gradient(135deg,#1a1a1f,#221828); border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; gap:16px; position:relative; overflow:hidden; }
+    header::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 50%,rgba(196,120,138,0.1) 0%,transparent 70%); pointer-events:none; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:var(--muted); font-size:0.82rem; font-weight:500; padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg3); transition:all 0.15s; flex-shrink:0; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent2); }
+    .header-center { flex:1; text-align:center; }
+    .header-center h1 { font-size:1.4rem; font-weight:800; background:linear-gradient(90deg,var(--accent),var(--glow)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .header-center p { font-size:0.78rem; color:var(--muted); margin-top:2px; }
+    .header-spacer { width:100px; flex-shrink:0; }
+
+    .container { max-width:860px; margin:0 auto; padding:32px 20px 0; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
+    .card-title { font-size:1.05rem; font-weight:700; color:var(--glow); margin-bottom:20px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .card-subtitle { font-size:0.8rem; color:var(--muted); font-weight:400; }
+
+    .field-block { margin-bottom:22px; }
+    .field-label { font-size:0.85rem; font-weight:600; color:var(--accent2); margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .field-label .tag { font-family:monospace; font-size:0.72rem; background:rgba(196,120,138,0.15); border:1px solid var(--accent); border-radius:4px; padding:1px 6px; color:var(--glow); }
+    .field-desc { font-size:0.75rem; color:var(--muted); margin-bottom:8px; line-height:1.5; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+    .chip { cursor:pointer; font-size:0.74rem; padding:4px 10px; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); transition:all 0.15s; user-select:none; }
+    .chip:hover { border-color:var(--accent2); color:var(--accent2); background:rgba(196,120,138,0.1); }
+    textarea, input[type="text"] { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:10px; color:var(--text); padding:12px 14px; font-size:0.9rem; font-family:inherit; resize:vertical; transition:border-color 0.2s,box-shadow 0.2s; outline:none; }
+    textarea:focus, input[type="text"]:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,120,138,0.15); }
+    textarea { min-height:80px; }
+
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-size:0.9rem; font-weight:600; cursor:pointer; border:none; transition:all 0.18s; }
+    .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; box-shadow:0 4px 15px rgba(196,120,138,0.3); }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(196,120,138,0.45); }
+    .btn-secondary { background:var(--bg3); color:var(--muted); border:1px solid var(--border); }
+    .btn-secondary:hover { border-color:var(--accent); color:var(--glow); }
+    .btn-danger { background:rgba(196,120,120,0.12); color:var(--danger); border:1px solid rgba(196,120,120,0.3); }
+    .btn-danger:hover { background:rgba(196,120,120,0.22); }
+    .btn-success { background:rgba(125,184,154,0.12); color:var(--success); border:1px solid rgba(125,184,154,0.3); }
+    .btn-success:hover { background:rgba(125,184,154,0.22); }
+    .btn-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    #compile-btn { width:100%; justify-content:center; padding:14px; font-size:1rem; border-radius:12px; margin-top:8px; }
+
+    #output-box { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px; font-family:'Courier New',monospace; font-size:0.85rem; color:#e8c4cc; white-space:pre-wrap; word-break:break-word; min-height:140px; line-height:1.7; }
+    #output-box.has-content { border-color:var(--accent); }
+
+    .tag-selector { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+    .tag-opt { cursor:pointer; font-size:0.74rem; padding:4px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); transition:all 0.15s; user-select:none; }
+    .tag-opt.selected { border-color:var(--accent); background:rgba(196,120,138,0.18); color:var(--glow); }
+
+    .stars { display:flex; gap:6px; margin:10px 0 4px; }
+    .star { font-size:1.4rem; cursor:pointer; opacity:0.3; transition:opacity 0.15s,transform 0.1s; user-select:none; }
+    .star:hover,.star.active { opacity:1; transform:scale(1.2); }
+    #rating-label { font-size:0.78rem; color:var(--muted); }
+
+    #library-list { list-style:none; }
+    .lib-item { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:14px; }
+    .lib-avatar { width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .lib-content { flex:1; min-width:0; }
+    .lib-name { font-weight:700; font-size:0.95rem; color:var(--accent2); margin-bottom:2px; }
+    .lib-mission { font-size:0.78rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lib-tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:5px; }
+    .lib-tag { font-size:0.68rem; padding:2px 8px; border-radius:10px; background:rgba(196,120,138,0.15); color:var(--accent2); border:1px solid rgba(196,120,138,0.3); }
+    .lib-stars-row { font-size:0.72rem; margin-top:3px; }
+    .lib-actions { display:flex; flex-wrap:wrap; gap:5px; flex-shrink:0; align-items:flex-start; }
+    .lib-btn { font-size:0.72rem; padding:4px 9px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:var(--bg2); color:var(--muted); transition:all 0.15s; white-space:nowrap; }
+    .lib-btn:hover { border-color:var(--accent); color:var(--accent2); }
+    .lib-btn.del:hover { border-color:var(--danger); color:var(--danger); }
+    #empty-lib { text-align:center; color:var(--muted); padding:28px; font-size:0.875rem; }
+
+    .filter-bar { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+    .filter-tag { cursor:pointer; font-size:0.74rem; padding:4px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); transition:all 0.15s; }
+    .filter-tag.active { border-color:var(--accent); background:rgba(196,120,138,0.15); color:var(--glow); }
+
+    #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--accent); color:#fff; padding:10px 22px; border-radius:24px; font-size:0.875rem; font-weight:600; box-shadow:0 4px 20px rgba(196,120,138,0.45); transition:transform 0.3s ease; z-index:999; pointer-events:none; }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+
+    @media(max-width:600px){ header{padding:14px 16px;} .header-spacer{display:none;} .card{padding:18px;} }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back-btn" href="index.html">← Inicio</a>
+  <div class="header-center">
+    <h1>Creador de Agentes</h1>
+    <p>PromptLab · por Liss</p>
+  </div>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-title">Diseña tu Agente <span class="card-subtitle">— Define su identidad completa</span></div>
+
+    <div class="field-block">
+      <div class="field-label">Nombre del agente <span class="tag">identidad</span></div>
+      <div class="field-desc">¿Cómo se llama? Un nombre que refleje su función.</div>
+      <div class="chips" data-target="nombre">
+        <span class="chip">Aria</span><span class="chip">Max</span><span class="chip">Nova</span>
+        <span class="chip">Sage</span><span class="chip">Flux</span><span class="chip">Echo</span>
+      </div>
+      <input type="text" id="nombre" placeholder="Ej: Aria, asistente de ventas..." />
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Misión <span class="tag">propósito</span></div>
+      <div class="field-desc">¿Para qué existe? ¿Qué problema resuelve?</div>
+      <div class="chips" data-target="mision">
+        <span class="chip">Asistir al equipo de ventas</span><span class="chip">Responder dudas de clientes</span>
+        <span class="chip">Generar contenido de marketing</span><span class="chip">Analizar datos y reportar</span>
+        <span class="chip">Apoyar en onboarding</span><span class="chip">Redactar correos profesionales</span>
+      </div>
+      <textarea id="mision" rows="2" placeholder="Ayudar al equipo de ventas a redactar propuestas personalizadas en menos de 2 minutos..."></textarea>
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Personalidad <span class="tag">tono y estilo</span></div>
+      <div class="field-desc">¿Cómo habla? ¿Qué actitud tiene?</div>
+      <div class="chips" data-target="personalidad">
+        <span class="chip">Profesional y empático</span><span class="chip">Directo y sin rodeos</span>
+        <span class="chip">Amigable y motivador</span><span class="chip">Formal y preciso</span>
+        <span class="chip">Creativo y entusiasta</span><span class="chip">Calmado y analítico</span>
+      </div>
+      <textarea id="personalidad" rows="2" placeholder="Habla de forma cálida y profesional. Usa ejemplos concretos..."></textarea>
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Guardrails <span class="tag">límites</span></div>
+      <div class="field-desc">¿Qué nunca debe hacer, decir o asumir?</div>
+      <div class="chips" data-target="guardrails">
+        <span class="chip">No inventar datos o estadísticas</span><span class="chip">No dar consejos médicos o legales</span>
+        <span class="chip">No hacer promesas de precio</span><span class="chip">No hablar de competidores</span>
+        <span class="chip">No usar lenguaje informal</span><span class="chip">No responder fuera del tema</span>
+      </div>
+      <textarea id="guardrails" rows="3" placeholder="Nunca inventar información. Si no sabe algo, decirlo honestamente y escalar..."></textarea>
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Capacidades <span class="tag">habilidades</span></div>
+      <div class="field-desc">¿Qué sabe hacer? ¿Qué conocimientos tiene?</div>
+      <div class="chips" data-target="capacidades">
+        <span class="chip">Redacción persuasiva</span><span class="chip">Análisis de datos</span>
+        <span class="chip">Búsqueda de información</span><span class="chip">Generación de ideas</span>
+        <span class="chip">Resumen de documentos</span><span class="chip">Respuesta en múltiples idiomas</span>
+      </div>
+      <textarea id="capacidades" rows="2" placeholder="Redactar propuestas comerciales, resumir conversaciones, adaptar mensajes al perfil del cliente..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="compile-btn">⚡ Compilar System Prompt</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">System Prompt Generado</div>
+    <div id="output-box">El system prompt de tu agente aparecerá aquí...</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="copy-btn">📋 Copiar</button>
+      <button class="btn btn-danger" id="clear-btn">🗑️ Limpiar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Guardar Agente</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;">Etiquetas</div>
+    <div class="tag-selector" id="tag-selector"></div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Calificación</div>
+    <div class="stars" id="stars">
+      <span class="star" data-v="1">⭐</span><span class="star" data-v="2">⭐</span>
+      <span class="star" data-v="3">⭐</span><span class="star" data-v="4">⭐</span>
+      <span class="star" data-v="5">⭐</span>
+    </div>
+    <div id="rating-label" style="margin-bottom:16px;">Sin calificar</div>
+    <button class="btn btn-success" id="save-btn">💾 Guardar en Librería</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      Librería de Agentes
+      <span style="margin-left:auto;display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="export-btn" style="font-size:0.76rem;padding:6px 12px;">📤 Exportar</button>
+        <label class="btn btn-secondary" style="font-size:0.76rem;padding:6px 12px;cursor:pointer;">
+          📥 Importar<input type="file" id="import-file" accept=".json" style="display:none;" />
+        </label>
+      </span>
+    </div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;">Filtrar por etiqueta</div>
+    <div class="filter-bar" id="filter-bar"></div>
+    <ul id="library-list"></ul>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'promptlab_agents';
+  const TAGS = ['Ventas','Marketing','Soporte','Educación','Análisis','Operaciones','RRHH','Tecnología'];
+  const EMOJIS = ['🤖','🧠','✨','⚡','🎯','🛡️','🚀','💡','🦾','🎨'];
+  let currentRating = 0, selectedTags = [], activeFilter = null;
+
+  document.querySelectorAll('.chips').forEach(group => {
+    group.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const el = document.getElementById(group.dataset.target);
+        const sep = el.value.trim() ? '. ' : '';
+        el.value = el.value.trim() + sep + chip.textContent.trim();
+        el.focus();
+      });
+    });
+  });
+
+  function renderTagSelector() {
+    document.getElementById('tag-selector').innerHTML = TAGS.map(t =>
+      `<span class="tag-opt${selectedTags.includes(t)?' selected':''}" onclick="toggleTag('${t}')">${t}</span>`
+    ).join('');
+  }
+  window.toggleTag = t => { selectedTags = selectedTags.includes(t)?selectedTags.filter(x=>x!==t):[...selectedTags,t]; renderTagSelector(); };
+
+  const stars = document.querySelectorAll('.star');
+  const ratingLabels = ['Sin calificar','Malo','Regular','Bueno','Muy bueno','Excelente'];
+  stars.forEach(s => {
+    s.addEventListener('click', () => { currentRating = +s.dataset.v; updateStars(); });
+    s.addEventListener('mouseenter', () => highlightStars(+s.dataset.v));
+    s.addEventListener('mouseleave', () => updateStars());
+  });
+  function highlightStars(n) { stars.forEach(s => s.classList.toggle('active', +s.dataset.v <= n)); }
+  function updateStars() { highlightStars(currentRating); document.getElementById('rating-label').textContent = ratingLabels[currentRating]; }
+
+  function get(id) { return document.getElementById(id).value.trim(); }
+
+  document.getElementById('compile-btn').addEventListener('click', () => {
+    const nombre=get('nombre'),mision=get('mision'),personalidad=get('personalidad'),guardrails=get('guardrails'),capacidades=get('capacidades');
+    if(!nombre&&!mision) { showToast('⚠️ Llena al menos Nombre y Misión'); return; }
+    let prompt='';
+    if(nombre)       prompt+=`# Identidad\nEres ${nombre}.\n\n`;
+    if(mision)       prompt+=`# Misión\n${mision}\n\n`;
+    if(personalidad) prompt+=`# Personalidad y tono\n${personalidad}\n\n`;
+    if(capacidades)  prompt+=`# Capacidades\n${capacidades}\n\n`;
+    if(guardrails)   prompt+=`# Restricciones (Guardrails)\n${guardrails}\n`;
+    const box=document.getElementById('output-box');
+    box.textContent=prompt.trim(); box.classList.add('has-content');
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    ['nombre','mision','personalidad','guardrails','capacidades'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('output-box').textContent='El system prompt de tu agente aparecerá aquí...';
+    document.getElementById('output-box').classList.remove('has-content');
+    selectedTags=[]; renderTagSelector(); currentRating=0; updateStars(); showToast('🧹 Limpiado');
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const text=document.getElementById('output-box').textContent;
+    if(text.startsWith('El system')){showToast('⚠️ Primero compila un agente');return;}
+    navigator.clipboard.writeText(text).then(()=>showToast('📋 Copiado'));
+  });
+
+  document.getElementById('save-btn').addEventListener('click', () => {
+    const text=document.getElementById('output-box').textContent;
+    if(text.startsWith('El system')){showToast('⚠️ Primero compila un agente');return;}
+    const nombre=get('nombre')||`Agente ${new Date().toLocaleString('es')}`;
+    const mision=get('mision');
+    const entry={id:Date.now(),nombre,mision,prompt:text,rating:currentRating,tags:[...selectedTags],date:new Date().toISOString()};
+    const lib=loadLib(); lib.unshift(entry); saveLib(lib); renderLib(); showToast('💾 Agente guardado');
+  });
+
+  function loadLib(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch{return[];}}
+  function saveLib(lib){localStorage.setItem(STORAGE_KEY,JSON.stringify(lib));}
+
+  function renderLib() {
+    const lib=loadLib();
+    const filtered=activeFilter?lib.filter(e=>e.tags&&e.tags.includes(activeFilter)):lib;
+    const ul=document.getElementById('library-list');
+    if(!filtered.length){
+      ul.innerHTML=`<div id="empty-lib">${activeFilter?`No hay agentes con la etiqueta "${activeFilter}".`:'🤖 Librería vacía. Compila y guarda agentes para verlos aquí.'}</div>`;
+      return;
+    }
+    ul.innerHTML=filtered.map((e,i)=>`
+      <li class="lib-item">
+        <div class="lib-avatar">${EMOJIS[i%EMOJIS.length]}</div>
+        <div class="lib-content">
+          <div class="lib-name">${esc(e.nombre)}</div>
+          <div class="lib-mission">${esc(e.mision||'—')}</div>
+          ${e.tags&&e.tags.length?`<div class="lib-tags">${e.tags.map(t=>`<span class="lib-tag">${t}</span>`).join('')}</div>`:''}
+          <div class="lib-stars-row">${'⭐'.repeat(e.rating)||'☆ Sin calificar'}</div>
+        </div>
+        <div class="lib-actions">
+          <button class="lib-btn" onclick="loadAgent(${e.id})">📂</button>
+          <button class="lib-btn" onclick="copyAgent(${e.id})">📋</button>
+          <button class="lib-btn" onclick="dupAgent(${e.id})">⧉</button>
+          <button class="lib-btn del" onclick="deleteAgent(${e.id})">🗑️</button>
+        </div>
+      </li>
+    `).join('');
+    const allTags=[...new Set(lib.flatMap(e=>e.tags||[]))];
+    document.getElementById('filter-bar').innerHTML=['Todos',...allTags].map(t=>
+      `<span class="filter-tag${(t==='Todos'&&!activeFilter)||(t===activeFilter)?' active':''}" onclick="setFilter('${t}')">${t}</span>`
+    ).join('');
+  }
+
+  window.setFilter=t=>{activeFilter=t==='Todos'?null:t;renderLib();};
+  window.loadAgent=id=>{
+    const e=loadLib().find(x=>x.id===id);if(!e)return;
+    document.getElementById('output-box').textContent=e.prompt;
+    document.getElementById('output-box').classList.add('has-content');
+    selectedTags=e.tags||[];renderTagSelector();
+    currentRating=e.rating;updateStars();
+    document.getElementById('output-box').scrollIntoView({behavior:'smooth'});
+    showToast('📂 Agente cargado');
+  };
+  window.copyAgent=id=>{const e=loadLib().find(x=>x.id===id);if(!e)return;navigator.clipboard.writeText(e.prompt).then(()=>showToast('📋 Copiado'));};
+  window.dupAgent=id=>{
+    const lib=loadLib();const e=lib.find(x=>x.id===id);if(!e)return;
+    const copy={...e,id:Date.now(),nombre:`Copia de ${e.nombre}`,date:new Date().toISOString()};
+    lib.unshift(copy);saveLib(lib);renderLib();showToast('⧉ Duplicado');
+  };
+  window.deleteAgent=id=>{saveLib(loadLib().filter(x=>x.id!==id));renderLib();showToast('🗑️ Eliminado');};
+
+  document.getElementById('export-btn').addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify(loadLib(),null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`promptlab_agentes_${Date.now()}.json`;a.click();
+    showToast('📤 Exportado');
+  });
+  document.getElementById('import-file').addEventListener('change',e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!Array.isArray(data))throw 0;const merged=[...data,...loadLib()].filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i);saveLib(merged);renderLib();showToast(`📥 ${data.length} importados`);}catch{showToast('❌ Archivo inválido');}};
+    reader.readAsText(file);e.target.value='';
+  });
+
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+  renderTagSelector(); renderLib();
+</script>
+</body>
+</html>

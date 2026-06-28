@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptLab – Estudio de Prompts</title>
+  <style>
+    :root {
+      --bg:#1a1a1f; --bg2:#222228; --bg3:#2a2a32;
+      --accent:#c4788a; --accent2:#d4899b; --glow:#e8b4be;
+      --text:#ede8ea; --muted:#9a8f93; --border:#3a3040; --card:#20202a;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* Nav */
+    nav { display:flex; align-items:center; padding:18px 40px; border-bottom:1px solid var(--border); background:var(--bg); }
+    .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+    .logo-text strong { display:block; font-size:0.95rem; font-weight:700; color:var(--text); }
+    .logo-text span { font-size:0.7rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
+    .nav-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    .nav-badge { font-size:0.75rem; color:var(--muted); background:var(--bg3); border:1px solid var(--border); padding:5px 12px; border-radius:20px; }
+    .nav-guide { font-size:0.78rem; font-weight:600; color:var(--accent2); text-decoration:none; padding:5px 14px; border:1px solid var(--accent); border-radius:20px; transition:all 0.15s; }
+    .nav-guide:hover { background:rgba(196,120,138,0.12); }
+
+    /* Hero */
+    .hero { text-align:center; padding:64px 24px 48px; position:relative; }
+    .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,rgba(196,120,138,0.12) 0%,transparent 65%); pointer-events:none; }
+    .hero-tag { display:inline-block; font-size:0.72rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:20px; padding:5px 16px; margin-bottom:24px; }
+    .hero h1 { font-size:clamp(2rem,5vw,3.2rem); font-weight:800; line-height:1.15; color:var(--text); max-width:700px; margin:0 auto 16px; letter-spacing:-0.5px; }
+    .hero h1 span { background:linear-gradient(90deg,var(--accent),var(--glow)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .hero p { font-size:1rem; color:var(--muted); max-width:500px; margin:0 auto 28px; line-height:1.7; }
+
+    /* Contador */
+    .counter-row { display:flex; justify-content:center; gap:16px; margin-bottom:0; }
+    .counter-pill { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:8px 20px; font-size:0.82rem; color:var(--muted); display:flex; align-items:center; gap:6px; }
+    .counter-pill strong { color:var(--glow); font-size:1rem; }
+
+    /* Prompt del día */
+    .pod-section { max-width:720px; margin:32px auto 0; padding:0 24px; }
+    .pod-card { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:12px; padding:20px 24px; position:relative; }
+    .pod-label { font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+    .pod-text { font-size:0.9rem; color:var(--text); line-height:1.6; margin-bottom:10px; }
+    .pod-copy { font-size:0.76rem; font-weight:600; color:var(--accent2); cursor:pointer; background:none; border:1px solid var(--border); border-radius:8px; padding:4px 12px; transition:all 0.15s; }
+    .pod-copy:hover { border-color:var(--accent); }
+
+    /* Cards */
+    .tools-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; max-width:760px; margin:40px auto 0; padding:0 24px 80px; }
+    .tool-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; display:flex; flex-direction:column; gap:12px; transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s; text-decoration:none; color:inherit; position:relative; overflow:hidden; }
+    .tool-card:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 8px 30px rgba(196,120,138,0.15); }
+    .tool-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--accent),var(--glow)); opacity:0; transition:opacity 0.2s; }
+    .tool-card:hover::before { opacity:1; }
+    .tool-icon { width:48px; height:48px; background:var(--bg3); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; }
+    .tool-card h2 { font-size:1.05rem; font-weight:700; color:var(--text); }
+    .tool-card p { font-size:0.85rem; color:var(--muted); line-height:1.6; flex:1; }
+    .tool-link { font-size:0.82rem; font-weight:600; color:var(--accent); display:flex; align-items:center; gap:4px; margin-top:4px; }
+    .tool-link svg { transition:transform 0.15s; }
+    .tool-card:hover .tool-link svg { transform:translateX(4px); }
+    .tool-count { font-size:0.72rem; color:var(--muted); margin-top:2px; }
+
+    /* Footer */
+    footer { text-align:center; padding:24px; border-top:1px solid var(--border); font-size:0.78rem; color:var(--muted); }
+
+    /* Welcome Modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:100; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:36px; max-width:480px; width:100%; text-align:center; }
+    .modal h2 { font-size:1.4rem; font-weight:800; background:linear-gradient(90deg,var(--accent),var(--glow)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
+    .modal p { font-size:0.88rem; color:var(--muted); line-height:1.7; margin-bottom:24px; }
+    .steps { text-align:left; margin-bottom:28px; }
+    .step { display:flex; gap:14px; align-items:flex-start; margin-bottom:16px; }
+    .step-num { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; color:#fff; flex-shrink:0; }
+    .step-text strong { display:block; font-size:0.88rem; color:var(--text); margin-bottom:2px; }
+    .step-text span { font-size:0.8rem; color:var(--muted); }
+    .modal-btn { display:inline-block; padding:12px 32px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; border:none; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all 0.18s; }
+    .modal-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(196,120,138,0.4); }
+
+    /* Toast */
+    #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--accent); color:#fff; padding:10px 22px; border-radius:24px; font-size:0.875rem; font-weight:600; box-shadow:0 4px 20px rgba(196,120,138,0.45); transition:transform 0.3s ease; z-index:999; pointer-events:none; }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+
+    @media(max-width:600px){ nav{padding:14px 20px;} .hero{padding:40px 20px 32px;} .tools-grid{padding:20px 16px 60px;} }
+  </style>
+</head>
+<body>
+
+<!-- Welcome Modal -->
+<div class="modal-overlay" id="welcome-modal">
+  <div class="modal">
+    <div style="font-size:2rem;margin-bottom:12px;">✦</div>
+    <h2>Bienvenida a PromptLab</h2>
+    <p>Tu estudio personal para diseñar, probar y guardar prompts poderosos. Aquí tienes dos herramientas para empezar:</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Constructor Semántico</strong>
+          <span>Arma prompts con etiquetas XML bloque por bloque. Incluye 6 plantillas listas para usar.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Creador de Agentes</strong>
+          <span>Define la identidad completa de un agente de IA: misión, personalidad, límites y capacidades.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Guarda y organiza</strong>
+          <span>Todo queda guardado en tu navegador. Añade etiquetas, califica y exporta tu librería.</span>
+        </div>
+      </div>
+    </div>
+    <button class="modal-btn" id="welcome-close">Empezar →</button>
+  </div>
+</div>
+
+<nav>
+  <a class="logo" href="index.html">
+    <div class="logo-icon">✦</div>
+    <div class="logo-text">
+      <strong>PromptLab</strong>
+      <span>por Liss</span>
+    </div>
+  </a>
+  <div class="nav-right">
+    <a class="nav-guide" href="guia.html">📖 Guía</a>
+    <div class="nav-badge">🔒 Datos solo en tu navegador</div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Estudio de Ingeniería de Prompts</div>
+  <h1>Diseña, prueba y guarda<br/><span>tus mejores prompts</span></h1>
+  <p>Dos herramientas, una sola biblioteca local. Elige el entorno que mejor se ajuste a lo que quieres construir hoy.</p>
+  <div class="counter-row">
+    <div class="counter-pill">Prompts guardados: <strong id="count-prompts">0</strong></div>
+    <div class="counter-pill">Agentes guardados: <strong id="count-agents">0</strong></div>
+  </div>
+</section>
+
+<!-- Prompt del día -->
+<div class="pod-section">
+  <div class="pod-card">
+    <div class="pod-label">✨ Prompt del día</div>
+    <div class="pod-text" id="pod-text"></div>
+    <button class="pod-copy" id="pod-copy">📋 Copiar</button>
+  </div>
+</div>
+
+<div class="tools-grid">
+  <a class="tool-card" href="prompt-generator.html">
+    <div class="tool-icon">🏗️</div>
+    <h2>Constructor Semántico</h2>
+    <p>Generación One-Shot con etiquetas XML. Plantillas prediseñadas, etiquetas, historial de versiones y librería completa.</p>
+    <div class="tool-count" id="card-count-prompts"></div>
+    <div class="tool-link">Abrir entorno <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+  </a>
+  <a class="tool-card" href="agentes.html">
+    <div class="tool-icon">🤖</div>
+    <h2>Creador de Agentes</h2>
+    <p>Diseña identidades persistentes: misión, guardrails y capacidades. Con etiquetas, duplicar y exportar.</p>
+    <div class="tool-count" id="card-count-agents"></div>
+    <div class="tool-link">Abrir entorno <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+  </a>
+</div>
+
+<footer>PromptLab · Hecho con 💗 por Liss · Todos los datos se guardan localmente en tu navegador</footer>
+
+<div id="toast"></div>
+
+<script>
+  const PROMPTS_DEL_DIA = [
+    'Eres un estratega de contenido. Analiza este tema y dame 5 ángulos originales que muy pocos creadores están explorando. Sé específico y evita los clichés habituales.',
+    'Actúa como un editor senior. Lee el siguiente texto y señala los 3 puntos donde el lector podría perder el interés. Propón cómo reescribir cada uno en máximo 2 oraciones.',
+    'Eres un coach de productividad. Tengo estas tareas pendientes: [lista aquí]. Organízalas por impacto real en mi semana y dime cuál debería eliminar sin culpa.',
+    'Como experto en copywriting, escribe 5 versiones del mismo mensaje cambiando solo el tono: informativo, urgente, amigable, aspiracional y directo. El mensaje es: [tu mensaje].',
+    'Eres un analista de negocios. Dame las 3 preguntas más importantes que debería hacerme antes de tomar esta decisión: [describe tu decisión]. Explica por qué cada pregunta es crítica.',
+    'Actúa como un cliente escéptico. Lee esta propuesta de valor y dime las 3 objeciones más fuertes que tendrías. Luego ayúdame a rebatirlas con evidencia concreta.',
+    'Eres un experto en comunicación. Reescribe este correo para que suene más empático sin perder la firmeza: [pega tu correo]. Mantén el mismo mensaje pero cambia el impacto emocional.',
+  ];
+
+  function loadCount(key) { try { return JSON.parse(localStorage.getItem(key)||'[]').length; } catch { return 0; } }
+
+  function updateCounters() {
+    const cp = loadCount('promptforge_library');
+    const ca = loadCount('promptlab_agents');
+    document.getElementById('count-prompts').textContent = cp;
+    document.getElementById('count-agents').textContent = ca;
+    document.getElementById('card-count-prompts').textContent = cp ? `${cp} prompt${cp!==1?'s':''} guardado${cp!==1?'s':''}` : '';
+    document.getElementById('card-count-agents').textContent = ca ? `${ca} agente${ca!==1?'s':''} guardado${ca!==1?'s':''}` : '';
+  }
+
+  // Prompt del día basado en el día del año
+  function getDayOfYear() { const now=new Date(); const start=new Date(now.getFullYear(),0,0); return Math.floor((now-start)/86400000); }
+  const pod = PROMPTS_DEL_DIA[getDayOfYear() % PROMPTS_DEL_DIA.length];
+  document.getElementById('pod-text').textContent = pod;
+  document.getElementById('pod-copy').addEventListener('click', () => {
+    navigator.clipboard.writeText(pod).then(() => showToast('📋 Prompt del día copiado'));
+  });
+
+  // Welcome modal
+  if (!localStorage.getItem('promptlab_welcomed')) {
+    document.getElementById('welcome-modal').classList.add('open');
+  }
+  document.getElementById('welcome-close').addEventListener('click', () => {
+    localStorage.setItem('promptlab_welcomed','1');
+    document.getElementById('welcome-modal').classList.remove('open');
+  });
+
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+  updateCounters();
+</script>
+</body>
+</html>

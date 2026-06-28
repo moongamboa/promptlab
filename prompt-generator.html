@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptLab – Constructor Semántico</title>
+  <style>
+    :root {
+      --bg: #1a1a1f; --bg2: #222228; --bg3: #2a2a32;
+      --accent: #c4788a; --accent2: #d4899b; --glow: #e8b4be;
+      --text: #ede8ea; --muted: #9a8f93; --border: #3a3040;
+      --success: #7db89a; --danger: #c47878; --card: #20202a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
+
+    /* Header */
+    header { background: linear-gradient(135deg,#1a1a1f,#221828); border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; gap:16px; position:relative; overflow:hidden; }
+    header::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 30% 50%,rgba(196,120,138,0.1) 0%,transparent 70%); pointer-events:none; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:var(--muted); font-size:0.82rem; font-weight:500; padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg3); transition:all 0.15s; flex-shrink:0; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent2); }
+    .header-center { flex:1; text-align:center; }
+    .header-center h1 { font-size:1.4rem; font-weight:800; background:linear-gradient(90deg,var(--accent),var(--glow)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .header-center p { font-size:0.78rem; color:var(--muted); margin-top:2px; }
+    .header-spacer { width:100px; flex-shrink:0; }
+
+    /* Container */
+    .container { max-width:860px; margin:0 auto; padding:32px 20px 0; }
+
+    /* Card */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
+    .card-title { font-size:1.05rem; font-weight:700; color:var(--glow); margin-bottom:20px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .card-subtitle { font-size:0.8rem; color:var(--muted); font-weight:400; }
+
+    /* Fields */
+    .field-block { margin-bottom:22px; }
+    .field-label { font-size:0.85rem; font-weight:600; color:var(--accent2); margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .field-label .tag { font-family:monospace; font-size:0.72rem; background:rgba(196,120,138,0.15); border:1px solid var(--accent); border-radius:4px; padding:1px 6px; color:var(--glow); }
+    .field-desc { font-size:0.75rem; color:var(--muted); margin-bottom:8px; line-height:1.5; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+    .chip { cursor:pointer; font-size:0.74rem; padding:4px 10px; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); transition:all 0.15s; user-select:none; }
+    .chip:hover { border-color:var(--accent2); color:var(--accent2); background:rgba(196,120,138,0.1); }
+    textarea, input[type="text"] { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:10px; color:var(--text); padding:12px 14px; font-size:0.9rem; font-family:inherit; resize:vertical; transition:border-color 0.2s,box-shadow 0.2s; outline:none; }
+    textarea:focus, input[type="text"]:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,120,138,0.15); }
+    textarea { min-height:80px; }
+
+    /* Plantillas */
+    .plantillas-toggle { cursor:pointer; font-size:0.82rem; color:var(--accent2); font-weight:600; display:flex; align-items:center; gap:6px; margin-bottom:16px; user-select:none; }
+    .plantillas-toggle svg { transition:transform 0.2s; }
+    .plantillas-toggle.open svg { transform:rotate(90deg); }
+    .plantillas-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:20px; }
+    .plantilla-card { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:14px; cursor:pointer; transition:all 0.15s; }
+    .plantilla-card:hover { border-color:var(--accent); background:rgba(196,120,138,0.08); }
+    .plantilla-card .p-name { font-size:0.85rem; font-weight:600; color:var(--text); margin-bottom:4px; }
+    .plantilla-card .p-desc { font-size:0.74rem; color:var(--muted); line-height:1.4; }
+    .plantilla-card .p-tag { font-size:0.68rem; color:var(--accent); margin-top:6px; }
+
+    /* Buttons */
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-size:0.9rem; font-weight:600; cursor:pointer; border:none; transition:all 0.18s; }
+    .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; box-shadow:0 4px 15px rgba(196,120,138,0.3); }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(196,120,138,0.45); }
+    .btn-secondary { background:var(--bg3); color:var(--muted); border:1px solid var(--border); }
+    .btn-secondary:hover { border-color:var(--accent); color:var(--glow); }
+    .btn-danger { background:rgba(196,120,120,0.12); color:var(--danger); border:1px solid rgba(196,120,120,0.3); }
+    .btn-danger:hover { background:rgba(196,120,120,0.22); }
+    .btn-success { background:rgba(125,184,154,0.12); color:var(--success); border:1px solid rgba(125,184,154,0.3); }
+    .btn-success:hover { background:rgba(125,184,154,0.22); }
+    .btn-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    #compile-btn { width:100%; justify-content:center; padding:14px; font-size:1rem; border-radius:12px; margin-top:8px; }
+
+    /* Output */
+    #output-box { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px; font-family:'Courier New',monospace; font-size:0.85rem; color:#e8c4cc; white-space:pre-wrap; word-break:break-word; min-height:120px; line-height:1.7; }
+    #output-box.has-content { border-color:var(--accent); }
+
+    /* Tags */
+    .tag-selector { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+    .tag-opt { cursor:pointer; font-size:0.74rem; padding:4px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); transition:all 0.15s; user-select:none; }
+    .tag-opt.selected { border-color:var(--accent); background:rgba(196,120,138,0.18); color:var(--glow); }
+
+    /* Stars */
+    .stars { display:flex; gap:6px; margin:10px 0 4px; }
+    .star { font-size:1.4rem; cursor:pointer; opacity:0.3; transition:opacity 0.15s,transform 0.1s; user-select:none; }
+    .star:hover,.star.active { opacity:1; transform:scale(1.2); }
+    #rating-label { font-size:0.78rem; color:var(--muted); }
+
+    /* Library */
+    #library-list { list-style:none; }
+    .lib-item { background:var(--bg3); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
+    .lib-content { flex:1; min-width:0; }
+    .lib-name { font-weight:600; font-size:0.9rem; color:var(--accent2); margin-bottom:2px; }
+    .lib-preview { font-size:0.78rem; color:var(--muted); font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lib-tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:5px; }
+    .lib-tag { font-size:0.68rem; padding:2px 8px; border-radius:10px; background:rgba(196,120,138,0.15); color:var(--accent2); border:1px solid rgba(196,120,138,0.3); }
+    .lib-stars-row { font-size:0.72rem; margin-top:3px; }
+    .lib-actions { display:flex; flex-wrap:wrap; gap:5px; flex-shrink:0; align-items:flex-start; }
+    .lib-btn { font-size:0.72rem; padding:4px 9px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:var(--bg2); color:var(--muted); transition:all 0.15s; white-space:nowrap; }
+    .lib-btn:hover { border-color:var(--accent); color:var(--accent2); }
+    .lib-btn.del:hover { border-color:var(--danger); color:var(--danger); }
+    .lib-btn.hist { }
+    .lib-btn.hist:hover { border-color:var(--success); color:var(--success); }
+    #empty-lib { text-align:center; color:var(--muted); padding:28px; font-size:0.875rem; }
+
+    /* Filter bar */
+    .filter-bar { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+    .filter-tag { cursor:pointer; font-size:0.74rem; padding:4px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); transition:all 0.15s; }
+    .filter-tag.active { border-color:var(--accent); background:rgba(196,120,138,0.15); color:var(--glow); }
+
+    /* History modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; max-width:600px; width:100%; max-height:80vh; overflow-y:auto; }
+    .modal-title { font-size:1rem; font-weight:700; color:var(--glow); margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+    .modal-close { cursor:pointer; font-size:1.2rem; color:var(--muted); background:none; border:none; }
+    .hist-item { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; }
+    .hist-date { font-size:0.72rem; color:var(--muted); margin-bottom:6px; }
+    .hist-preview { font-family:monospace; font-size:0.8rem; color:#e8c4cc; white-space:pre-wrap; word-break:break-word; max-height:120px; overflow:auto; }
+    .hist-restore { font-size:0.72rem; padding:4px 10px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:var(--bg2); color:var(--muted); margin-top:8px; transition:all 0.15s; }
+    .hist-restore:hover { border-color:var(--accent); color:var(--accent2); }
+
+    /* Toast */
+    #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--accent); color:#fff; padding:10px 22px; border-radius:24px; font-size:0.875rem; font-weight:600; box-shadow:0 4px 20px rgba(196,120,138,0.45); transition:transform 0.3s ease; z-index:999; pointer-events:none; }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+
+    @media(max-width:600px){ header{padding:14px 16px;} .header-spacer{display:none;} .card{padding:18px;} }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back-btn" href="index.html">← Inicio</a>
+  <div class="header-center">
+    <h1>Constructor Semántico</h1>
+    <p>PromptLab · por Liss</p>
+  </div>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="container">
+
+  <!-- PLANTILLAS -->
+  <div class="card">
+    <div class="card-title">Plantillas Prediseñadas <span class="card-subtitle">— clic para cargar</span></div>
+    <div class="plantillas-grid" id="plantillas-grid"></div>
+  </div>
+
+  <!-- CONSTRUCTOR -->
+  <div class="card">
+    <div class="card-title">Constructor de Prompt <span class="card-subtitle">— rellena los bloques y compila</span></div>
+
+    <div class="field-block">
+      <div class="field-label">Rol <span class="tag">&lt;rol&gt;</span></div>
+      <div class="field-desc">¿Quién actúa? Define el personaje o experto.</div>
+      <div class="chips" data-target="rol">
+        <span class="chip">Experto en marketing</span><span class="chip">Redactor creativo</span>
+        <span class="chip">Programador senior</span><span class="chip">Coach de negocios</span>
+        <span class="chip">Analista de datos</span><span class="chip">Profesor universitario</span>
+      </div>
+      <textarea id="rol" rows="2" placeholder="Eres un experto en marketing digital con 10 años de experiencia..."></textarea>
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Tarea <span class="tag">&lt;tarea&gt;</span></div>
+      <div class="field-desc">¿Qué debe hacer? Describe la acción principal.</div>
+      <div class="chips" data-target="tarea">
+        <span class="chip">Escribe un correo de ventas</span><span class="chip">Resume el siguiente texto</span>
+        <span class="chip">Crea un plan de contenido</span><span class="chip">Explica paso a paso</span>
+        <span class="chip">Genera 10 ideas creativas</span><span class="chip">Analiza los pros y contras</span>
+      </div>
+      <textarea id="tarea" rows="2" placeholder="Escribe una estrategia de contenido para redes sociales..."></textarea>
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Contexto <span class="tag">&lt;contexto&gt;</span></div>
+      <div class="field-desc">Reglas del entorno, restricciones o datos clave.</div>
+      <div class="chips" data-target="contexto">
+        <span class="chip">Audiencia: principiantes</span><span class="chip">Idioma: español</span>
+        <span class="chip">Sin tecnicismos</span><span class="chip">Empresa B2B SaaS</span>
+        <span class="chip">Máximo 200 palabras</span><span class="chip">Evita lenguaje informal</span>
+      </div>
+      <textarea id="contexto" rows="3" placeholder="El cliente es una startup de tecnología. El público objetivo son emprendedores de 25-40 años..."></textarea>
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Tono <span class="tag">&lt;tono&gt;</span></div>
+      <div class="field-desc">¿Cómo debe sonar la respuesta?</div>
+      <div class="chips" data-target="tono">
+        <span class="chip">Profesional y directo</span><span class="chip">Amigable y cercano</span>
+        <span class="chip">Inspirador y motivador</span><span class="chip">Técnico y preciso</span>
+        <span class="chip">Casual y divertido</span><span class="chip">Formal y académico</span>
+      </div>
+      <textarea id="tono" rows="2" placeholder="Profesional pero accesible, sin jerga técnica..."></textarea>
+    </div>
+
+    <div class="field-block">
+      <div class="field-label">Formato <span class="tag">&lt;formato&gt;</span></div>
+      <div class="field-desc">¿Cómo debe presentarse el resultado?</div>
+      <div class="chips" data-target="formato">
+        <span class="chip">Lista con viñetas</span><span class="chip">Párrafos fluidos</span>
+        <span class="chip">Tabla comparativa</span><span class="chip">Paso a paso numerado</span>
+        <span class="chip">Resumen + detalles</span><span class="chip">Código comentado</span>
+      </div>
+      <textarea id="formato" rows="2" placeholder="Responde en forma de lista numerada con ejemplos concretos..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="compile-btn">⚡ Compilar Prompt</button>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="card">
+    <div class="card-title">Prompt Generado</div>
+    <div id="output-box">El prompt compilado aparecerá aquí...</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="copy-btn">📋 Copiar</button>
+      <button class="btn btn-danger" id="clear-btn">🗑️ Limpiar</button>
+    </div>
+  </div>
+
+  <!-- GUARDAR -->
+  <div class="card">
+    <div class="card-title">Guardar Prompt</div>
+
+    <label style="font-size:0.82rem;color:var(--muted);display:block;margin-bottom:6px;">Nombre</label>
+    <input type="text" id="save-name" placeholder="Ej: Email ventas SaaS B2B..." style="margin-bottom:14px;" />
+
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;">Etiquetas</div>
+    <div class="tag-selector" id="tag-selector"></div>
+
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">Calificación</div>
+    <div class="stars" id="stars">
+      <span class="star" data-v="1">⭐</span><span class="star" data-v="2">⭐</span>
+      <span class="star" data-v="3">⭐</span><span class="star" data-v="4">⭐</span>
+      <span class="star" data-v="5">⭐</span>
+    </div>
+    <div id="rating-label" style="margin-bottom:16px;">Sin calificar</div>
+
+    <button class="btn btn-success" id="save-btn">💾 Guardar en Librería</button>
+  </div>
+
+  <!-- LIBRERÍA -->
+  <div class="card">
+    <div class="card-title">
+      Librería Local
+      <span style="margin-left:auto;display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="export-btn" style="font-size:0.76rem;padding:6px 12px;">📤 Exportar</button>
+        <label class="btn btn-secondary" style="font-size:0.76rem;padding:6px 12px;cursor:pointer;">
+          📥 Importar<input type="file" id="import-file" accept=".json" style="display:none;" />
+        </label>
+      </span>
+    </div>
+
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;">Filtrar por etiqueta</div>
+    <div class="filter-bar" id="filter-bar"></div>
+
+    <ul id="library-list"></ul>
+  </div>
+
+</div>
+
+<!-- History Modal -->
+<div class="modal-overlay" id="hist-modal">
+  <div class="modal">
+    <div class="modal-title">
+      Historial de versiones
+      <button class="modal-close" id="hist-close">✕</button>
+    </div>
+    <div id="hist-content"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'promptforge_library';
+  const TAGS = ['Marketing','Ventas','Contenido','Redes Sociales','Email','Código','Educación','Análisis'];
+  let currentRating = 0;
+  let selectedTags = [];
+  let activeFilter = null;
+  let histTargetId = null;
+
+  const PLANTILLAS = [
+    { name:'Email de ventas SaaS', tag:'Ventas', rol:'Eres un experto en ventas B2B SaaS con 8 años de experiencia cerrando deals con empresas medianas.', tarea:'Escribe un email de ventas conciso y persuasivo para presentar nuestro producto a un nuevo prospecto.', contexto:'El prospecto es un Director de Operaciones de una empresa de 50-200 empleados. El producto resuelve la gestión de tareas en equipo. Tono no invasivo.', tono:'Profesional, directo y empático. Sin presión excesiva.', formato:'Asunto llamativo + cuerpo de máximo 150 palabras + CTA claro al final.' },
+    { name:'Post LinkedIn viral', tag:'Redes Sociales', rol:'Eres un creador de contenido B2B especializado en LinkedIn con audiencia de más de 50k seguidores.', tarea:'Escribe un post de LinkedIn que genere engagement sobre el tema que te proporcione.', contexto:'Audiencia: profesionales y emprendedores de 28-45 años. El post debe iniciar con un gancho potente. Sin hashtags en exceso.', tono:'Auténtico, reflexivo y conversacional.', formato:'Gancho (1-2 líneas) + desarrollo (4-6 párrafos cortos) + pregunta al final para comentarios.' },
+    { name:'Plan de contenido mensual', tag:'Marketing', rol:'Eres una estratega de contenido digital con especialización en marketing de atracción.', tarea:'Crea un plan de contenido para el mes indicado con ideas de publicaciones para diferentes canales.', contexto:'Empresa B2B del sector tecnología. Canales: LinkedIn, Instagram y blog. Frecuencia: 3 posts/semana por canal.', tono:'Estratégico y orientado a resultados.', formato:'Tabla semanal con: fecha, canal, tema, formato del contenido y objetivo de cada publicación.' },
+    { name:'Análisis de competencia', tag:'Análisis', rol:'Eres un analista de negocios senior con experiencia en inteligencia competitiva.', tarea:'Realiza un análisis comparativo de los competidores principales del mercado indicado.', contexto:'El análisis debe ser objetivo y basado en información pública. Incluye fortalezas, debilidades y oportunidades de diferenciación.', tono:'Analítico, preciso y objetivo.', formato:'Tabla comparativa con: competidor, propuesta de valor, fortalezas, debilidades, precio aproximado. Conclusión con oportunidades.' },
+    { name:'Guión de video YouTube', tag:'Contenido', rol:'Eres un guionista de YouTube especializado en contenido educativo que genera millones de views.', tarea:'Escribe un guión completo para un video de YouTube sobre el tema proporcionado.', contexto:'Canal educativo. Duración objetivo: 8-12 minutos. Audiencia: personas que quieren aprender de forma práctica. Debe incluir momentos de engagement.', tono:'Dinámico, claro y entretenido sin perder profundidad.', formato:'Intro con gancho + desarrollo en 3-4 secciones + cierre con CTA. Incluir indicaciones de B-roll y pausas.' },
+    { name:'Respuesta cliente difícil', tag:'Ventas', rol:'Eres un especialista en atención al cliente con habilidades avanzadas en resolución de conflictos.', tarea:'Redacta una respuesta profesional y empática para un cliente insatisfecho o molesto.', contexto:'El cliente está frustrado por un problema con el servicio. La respuesta debe calmar la situación, mostrar empatía genuina y ofrecer una solución concreta.', tono:'Empático, calmado, profesional y orientado a soluciones.', formato:'Saludo personalizado + reconocimiento del problema + disculpa + solución concreta + seguimiento. Máximo 200 palabras.' },
+  ];
+
+  // ── Render plantillas ──
+  function renderPlantillas() {
+    const grid = document.getElementById('plantillas-grid');
+    grid.innerHTML = PLANTILLAS.map((p, i) => `
+      <div class="plantilla-card" onclick="loadPlantilla(${i})">
+        <div class="p-name">${p.name}</div>
+        <div class="p-tag">${p.tag}</div>
+      </div>
+    `).join('');
+  }
+
+  window.loadPlantilla = i => {
+    const p = PLANTILLAS[i];
+    document.getElementById('rol').value = p.rol;
+    document.getElementById('tarea').value = p.tarea;
+    document.getElementById('contexto').value = p.contexto;
+    document.getElementById('tono').value = p.tono;
+    document.getElementById('formato').value = p.formato;
+    document.getElementById('save-name').value = p.name;
+    document.querySelector('.container').scrollIntoView({ behavior:'smooth' });
+    showToast('📋 Plantilla cargada');
+  };
+
+  // ── Chips ──
+  document.querySelectorAll('.chips').forEach(group => {
+    group.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const ta = document.getElementById(group.dataset.target);
+        const sep = ta.value.trim() ? '. ' : '';
+        ta.value = ta.value.trim() + sep + chip.textContent.trim();
+        ta.focus();
+      });
+    });
+  });
+
+  // ── Tag selector ──
+  function renderTagSelector() {
+    document.getElementById('tag-selector').innerHTML = TAGS.map(t =>
+      `<span class="tag-opt${selectedTags.includes(t)?' selected':''}" onclick="toggleTag('${t}')">${t}</span>`
+    ).join('');
+  }
+  window.toggleTag = t => {
+    selectedTags = selectedTags.includes(t) ? selectedTags.filter(x=>x!==t) : [...selectedTags, t];
+    renderTagSelector();
+  };
+
+  // ── Stars ──
+  const stars = document.querySelectorAll('.star');
+  const ratingLabels = ['Sin calificar','Malo','Regular','Bueno','Muy bueno','Excelente'];
+  stars.forEach(s => {
+    s.addEventListener('click', () => { currentRating = +s.dataset.v; updateStars(); });
+    s.addEventListener('mouseenter', () => highlightStars(+s.dataset.v));
+    s.addEventListener('mouseleave', () => updateStars());
+  });
+  function highlightStars(n) { stars.forEach(s => s.classList.toggle('active', +s.dataset.v <= n)); }
+  function updateStars() { highlightStars(currentRating); document.getElementById('rating-label').textContent = ratingLabels[currentRating]; }
+
+  // ── Compile ──
+  function get(id) { return document.getElementById(id).value.trim(); }
+  document.getElementById('compile-btn').addEventListener('click', () => {
+    const f = { rol:get('rol'), tarea:get('tarea'), contexto:get('contexto'), tono:get('tono'), formato:get('formato') };
+    if (!Object.values(f).some(v=>v)) { showToast('⚠️ Llena al menos un campo'); return; }
+    let xml = '';
+    if (f.rol)      xml += `<rol>\n  ${f.rol}\n</rol>\n\n`;
+    if (f.tarea)    xml += `<tarea>\n  ${f.tarea}\n</tarea>\n\n`;
+    if (f.contexto) xml += `<contexto>\n  ${f.contexto}\n</contexto>\n\n`;
+    if (f.tono)     xml += `<tono>\n  ${f.tono}\n</tono>\n\n`;
+    if (f.formato)  xml += `<formato>\n  ${f.formato}\n</formato>\n\n`;
+    const box = document.getElementById('output-box');
+    box.textContent = xml.trim();
+    box.classList.add('has-content');
+    box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
+
+  // ── Clear ──
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    ['rol','tarea','contexto','tono','formato'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('output-box').textContent = 'El prompt compilado aparecerá aquí...';
+    document.getElementById('output-box').classList.remove('has-content');
+    document.getElementById('save-name').value = '';
+    selectedTags = []; renderTagSelector();
+    currentRating = 0; updateStars();
+    showToast('🧹 Limpiado');
+  });
+
+  // ── Copy ──
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const text = document.getElementById('output-box').textContent;
+    if (text.startsWith('El prompt')) { showToast('⚠️ Primero compila un prompt'); return; }
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Copiado'));
+  });
+
+  // ── Save ──
+  document.getElementById('save-btn').addEventListener('click', () => {
+    const text = document.getElementById('output-box').textContent;
+    if (text.startsWith('El prompt')) { showToast('⚠️ Primero compila un prompt'); return; }
+    const name = get('save-name') || `Prompt ${new Date().toLocaleString('es')}`;
+    const lib = loadLib();
+    const existing = lib.find(e => e.name === name);
+    if (existing) {
+      existing.versions = existing.versions || [];
+      existing.versions.unshift({ prompt: existing.prompt, date: existing.date });
+      if (existing.versions.length > 5) existing.versions = existing.versions.slice(0, 5);
+      existing.prompt = text; existing.rating = currentRating;
+      existing.tags = [...selectedTags]; existing.date = new Date().toISOString();
+      saveLib(lib); renderLib(); showToast('💾 Versión actualizada');
+    } else {
+      const entry = { id:Date.now(), name, prompt:text, rating:currentRating, tags:[...selectedTags], date:new Date().toISOString(), versions:[] };
+      lib.unshift(entry); saveLib(lib); renderLib(); showToast('💾 Guardado');
+    }
+  });
+
+  // ── Library ──
+  function loadLib() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); } catch { return []; } }
+  function saveLib(lib) { localStorage.setItem(STORAGE_KEY, JSON.stringify(lib)); }
+
+  function renderLib() {
+    const lib = loadLib();
+    const filtered = activeFilter ? lib.filter(e => e.tags && e.tags.includes(activeFilter)) : lib;
+    const ul = document.getElementById('library-list');
+    if (!filtered.length) {
+      ul.innerHTML = `<div id="empty-lib">${activeFilter ? `No hay prompts con la etiqueta "${activeFilter}".` : '📭 Librería vacía. Compila y guarda prompts para verlos aquí.'}</div>`;
+      return;
+    }
+    ul.innerHTML = filtered.map(e => `
+      <li class="lib-item">
+        <div class="lib-content">
+          <div class="lib-name">${esc(e.name)}</div>
+          <div class="lib-preview">${esc(e.prompt.slice(0,90))}${e.prompt.length>90?'…':''}</div>
+          ${e.tags&&e.tags.length ? `<div class="lib-tags">${e.tags.map(t=>`<span class="lib-tag">${t}</span>`).join('')}</div>` : ''}
+          <div class="lib-stars-row">${'⭐'.repeat(e.rating)||'☆ Sin calificar'}</div>
+        </div>
+        <div class="lib-actions">
+          <button class="lib-btn" onclick="loadPrompt(${e.id})">📂</button>
+          <button class="lib-btn" onclick="copyPrompt(${e.id})">📋</button>
+          <button class="lib-btn" onclick="dupPrompt(${e.id})">⧉</button>
+          ${e.versions&&e.versions.length?`<button class="lib-btn hist" onclick="showHist(${e.id})">🕐 ${e.versions.length}</button>`:''}
+          <button class="lib-btn del" onclick="delPrompt(${e.id})">🗑️</button>
+        </div>
+      </li>
+    `).join('');
+
+    // filter bar
+    const allTags = [...new Set(lib.flatMap(e => e.tags||[]))];
+    const fb = document.getElementById('filter-bar');
+    fb.innerHTML = ['Todos',...allTags].map(t =>
+      `<span class="filter-tag${(t==='Todos'&&!activeFilter)||(t===activeFilter)?'  active':''}" onclick="setFilter('${t}')">${t}</span>`
+    ).join('');
+  }
+
+  window.setFilter = t => { activeFilter = t==='Todos'?null:t; renderLib(); };
+  window.loadPrompt = id => {
+    const e = loadLib().find(x=>x.id===id); if(!e) return;
+    document.getElementById('output-box').textContent = e.prompt;
+    document.getElementById('output-box').classList.add('has-content');
+    document.getElementById('save-name').value = e.name;
+    selectedTags = e.tags||[]; renderTagSelector();
+    currentRating = e.rating; updateStars();
+    document.getElementById('output-box').scrollIntoView({behavior:'smooth'});
+    showToast('📂 Cargado');
+  };
+  window.copyPrompt = id => { const e=loadLib().find(x=>x.id===id); if(!e) return; navigator.clipboard.writeText(e.prompt).then(()=>showToast('📋 Copiado')); };
+  window.dupPrompt = id => {
+    const lib = loadLib(); const e = lib.find(x=>x.id===id); if(!e) return;
+    const copy = {...e, id:Date.now(), name:`Copia de ${e.name}`, date:new Date().toISOString(), versions:[]};
+    lib.unshift(copy); saveLib(lib); renderLib(); showToast('⧉ Duplicado');
+  };
+  window.delPrompt = id => { saveLib(loadLib().filter(x=>x.id!==id)); renderLib(); showToast('🗑️ Eliminado'); };
+
+  // ── History ──
+  window.showHist = id => {
+    const e = loadLib().find(x=>x.id===id); if(!e||!e.versions?.length) return;
+    histTargetId = id;
+    document.getElementById('hist-content').innerHTML = e.versions.map((v,i) => `
+      <div class="hist-item">
+        <div class="hist-date">Versión ${e.versions.length-i} · ${new Date(v.date).toLocaleString('es')}</div>
+        <div class="hist-preview">${esc(v.prompt)}</div>
+        <button class="hist-restore" onclick="restoreHist(${id},${i})">↩ Restaurar esta versión</button>
+      </div>
+    `).join('');
+    document.getElementById('hist-modal').classList.add('open');
+  };
+  window.restoreHist = (id, idx) => {
+    const lib = loadLib(); const e = lib.find(x=>x.id===id); if(!e) return;
+    const v = e.versions[idx];
+    e.versions.unshift({prompt:e.prompt, date:e.date});
+    e.versions.splice(idx+1,1);
+    if(e.versions.length>5) e.versions=e.versions.slice(0,5);
+    e.prompt = v.prompt; e.date = new Date().toISOString();
+    saveLib(lib); renderLib();
+    document.getElementById('hist-modal').classList.remove('open');
+    document.getElementById('output-box').textContent = v.prompt;
+    document.getElementById('output-box').classList.add('has-content');
+    showToast('↩ Versión restaurada');
+  };
+  document.getElementById('hist-close').addEventListener('click', () => document.getElementById('hist-modal').classList.remove('open'));
+  document.getElementById('hist-modal').addEventListener('click', e => { if(e.target===e.currentTarget) e.currentTarget.classList.remove('open'); });
+
+  // ── Export / Import ──
+  document.getElementById('export-btn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(loadLib(),null,2)],{type:'application/json'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`promptlab_${Date.now()}.json`; a.click();
+    showToast('📤 Exportado');
+  });
+  document.getElementById('import-file').addEventListener('change', e => {
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{ try{ const data=JSON.parse(ev.target.result); if(!Array.isArray(data)) throw 0; const merged=[...data,...loadLib()].filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i); saveLib(merged); renderLib(); showToast(`📥 ${data.length} importados`); }catch{ showToast('❌ Archivo inválido'); } };
+    reader.readAsText(file); e.target.value='';
+  });
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+  renderPlantillas(); renderTagSelector(); renderLib();
+</script>
+</body>
+</html>

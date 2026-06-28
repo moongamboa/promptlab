@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptLab – Guía de Ingeniería de Prompts</title>
+  <style>
+    :root {
+      --bg:#1a1a1f; --bg2:#222228; --bg3:#2a2a32;
+      --accent:#c4788a; --accent2:#d4899b; --glow:#e8b4be;
+      --text:#ede8ea; --muted:#9a8f93; --border:#3a3040; --card:#20202a;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:80px; }
+
+    header { background:linear-gradient(135deg,#1a1a1f,#221828); border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; gap:16px; }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:var(--muted); font-size:0.82rem; font-weight:500; padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg3); transition:all 0.15s; flex-shrink:0; }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent2); }
+    .header-center { flex:1; text-align:center; }
+    .header-center h1 { font-size:1.4rem; font-weight:800; background:linear-gradient(90deg,var(--accent),var(--glow)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .header-center p { font-size:0.78rem; color:var(--muted); margin-top:2px; }
+    .header-spacer { width:100px; flex-shrink:0; }
+
+    .container { max-width:780px; margin:0 auto; padding:40px 24px 0; }
+
+    /* Hero */
+    .guide-hero { text-align:center; margin-bottom:48px; }
+    .guide-hero .tag { display:inline-block; font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:20px; padding:5px 16px; margin-bottom:16px; }
+    .guide-hero h2 { font-size:2rem; font-weight:800; color:var(--text); margin-bottom:10px; line-height:1.2; }
+    .guide-hero p { font-size:0.95rem; color:var(--muted); line-height:1.7; max-width:560px; margin:0 auto; }
+
+    /* TOC */
+    .toc { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:22px 26px; margin-bottom:40px; }
+    .toc-title { font-size:0.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; }
+    .toc a { display:block; font-size:0.88rem; color:var(--accent2); text-decoration:none; padding:4px 0; transition:color 0.15s; }
+    .toc a:hover { color:var(--glow); }
+    .toc a::before { content:'→ '; opacity:0.5; }
+
+    /* Sections */
+    .section { margin-bottom:48px; }
+    .section-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+    .section-num { width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:800; color:#fff; flex-shrink:0; }
+    .section h2 { font-size:1.25rem; font-weight:700; color:var(--text); }
+
+    p.body-text { font-size:0.92rem; color:var(--muted); line-height:1.8; margin-bottom:16px; }
+
+    /* Elements grid */
+    .elements-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-bottom:16px; }
+    .element-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; }
+    .element-card .e-tag { font-family:monospace; font-size:0.72rem; background:rgba(196,120,138,0.15); border:1px solid var(--accent); border-radius:4px; padding:2px 8px; color:var(--glow); display:inline-block; margin-bottom:8px; }
+    .element-card h3 { font-size:0.92rem; font-weight:700; color:var(--text); margin-bottom:6px; }
+    .element-card p { font-size:0.8rem; color:var(--muted); line-height:1.5; }
+
+    /* Technique cards */
+    .technique { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:14px; }
+    .technique h3 { font-size:0.95rem; font-weight:700; color:var(--accent2); margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+    .technique p { font-size:0.85rem; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+    .technique .example { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-family:monospace; font-size:0.8rem; color:#e8c4cc; line-height:1.5; }
+    .technique .ex-label { font-size:0.68rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+
+    /* Mistakes */
+    .mistake { display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
+    .mistake:last-child { border-bottom:none; }
+    .mistake .icon { font-size:1.2rem; flex-shrink:0; margin-top:2px; }
+    .mistake h3 { font-size:0.9rem; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .mistake p { font-size:0.82rem; color:var(--muted); line-height:1.5; }
+    .mistake .fix { font-size:0.8rem; color:var(--success); margin-top:4px; }
+
+    /* Checklist */
+    .checklist { list-style:none; }
+    .checklist li { display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.88rem; color:var(--muted); line-height:1.5; }
+    .checklist li:last-child { border-bottom:none; }
+    .checklist li::before { content:'✓'; color:var(--accent); font-weight:700; flex-shrink:0; }
+
+    /* CTA */
+    .cta-card { background:linear-gradient(135deg,rgba(196,120,138,0.12),rgba(232,180,190,0.08)); border:1px solid var(--accent); border-radius:16px; padding:32px; text-align:center; margin-top:48px; }
+    .cta-card h3 { font-size:1.2rem; font-weight:700; color:var(--text); margin-bottom:8px; }
+    .cta-card p { font-size:0.88rem; color:var(--muted); margin-bottom:20px; }
+    .cta-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .cta-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; border-radius:10px; font-size:0.88rem; font-weight:600; text-decoration:none; transition:all 0.15s; }
+    .cta-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+    .cta-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(196,120,138,0.4); }
+    .cta-secondary { background:var(--bg3); color:var(--muted); border:1px solid var(--border); }
+    .cta-secondary:hover { border-color:var(--accent); color:var(--glow); }
+
+    @media(max-width:600px){ header{padding:14px 16px;} .header-spacer{display:none;} .container{padding:24px 16px 0;} }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="back-btn" href="index.html">← Inicio</a>
+  <div class="header-center">
+    <h1>Guía de Prompts</h1>
+    <p>PromptLab · por Liss</p>
+  </div>
+  <div class="header-spacer"></div>
+</header>
+
+<div class="container">
+
+  <div class="guide-hero">
+    <div class="tag">📖 Guía Completa</div>
+    <h2>Ingeniería de Prompts<br/>desde cero</h2>
+    <p>Todo lo que necesitas saber para escribir prompts que realmente funcionen. Desde los conceptos básicos hasta las técnicas avanzadas.</p>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">Contenido</div>
+    <a href="#que-es">¿Qué es un prompt?</a>
+    <a href="#cinco-elementos">Los 5 elementos clave</a>
+    <a href="#tecnicas">Técnicas avanzadas</a>
+    <a href="#errores">Errores comunes</a>
+    <a href="#checklist">Checklist del buen prompt</a>
+  </div>
+
+  <!-- 1. Qué es -->
+  <div class="section" id="que-es">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>¿Qué es un prompt?</h2>
+    </div>
+    <p class="body-text">Un <strong style="color:var(--glow)">prompt</strong> es la instrucción que le das a un modelo de inteligencia artificial para obtener una respuesta. Es, en esencia, la forma en que "hablas" con la IA.</p>
+    <p class="body-text">Pero no todos los prompts son iguales. La diferencia entre un prompt mediocre y uno excelente puede ser la diferencia entre una respuesta genérica y una respuesta que resuelva exactamente tu problema.</p>
+    <p class="body-text">La <strong style="color:var(--glow)">ingeniería de prompts</strong> es el arte y la ciencia de diseñar esas instrucciones de forma estratégica para obtener resultados consistentes, precisos y útiles.</p>
+    <div class="technique">
+      <h3>💡 Analogía clave</h3>
+      <p>Hablarle a una IA sin un buen prompt es como contratar al mejor chef del mundo y decirle solo "cocina algo rico". Un buen prompt sería: "Eres un chef italiano. Prepara una pasta vegetariana para 4 personas con menos de 30 minutos de preparación, usando ingredientes que puedo encontrar en cualquier supermercado. Presenta la receta paso a paso con tiempos exactos."</p>
+    </div>
+  </div>
+
+  <!-- 2. Cinco elementos -->
+  <div class="section" id="cinco-elementos">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Los 5 elementos clave</h2>
+    </div>
+    <p class="body-text">Un prompt bien estructurado tiene cinco bloques. No necesitas usar todos en cada caso, pero cuantos más incluyas, más precisa será la respuesta.</p>
+    <div class="elements-grid">
+      <div class="element-card">
+        <span class="e-tag">&lt;rol&gt;</span>
+        <h3>Rol</h3>
+        <p>¿Quién actúa? Define al experto o personaje. "Eres un abogado especialista en contratos..." Le da contexto y autoridad a la respuesta.</p>
+      </div>
+      <div class="element-card">
+        <span class="e-tag">&lt;tarea&gt;</span>
+        <h3>Tarea</h3>
+        <p>¿Qué debe hacer? La instrucción principal, clara y específica. Usa verbos de acción: escribe, analiza, resume, crea, explica.</p>
+      </div>
+      <div class="element-card">
+        <span class="e-tag">&lt;contexto&gt;</span>
+        <h3>Contexto</h3>
+        <p>¿Cuál es el entorno? Restricciones, audiencia, información de fondo. Cuanto más específico, mejor calibrada la respuesta.</p>
+      </div>
+      <div class="element-card">
+        <span class="e-tag">&lt;tono&gt;</span>
+        <h3>Tono</h3>
+        <p>¿Cómo debe sonar? Formal, amigable, técnico, inspirador. El tono cambia completamente el impacto del contenido.</p>
+      </div>
+      <div class="element-card">
+        <span class="e-tag">&lt;formato&gt;</span>
+        <h3>Formato</h3>
+        <p>¿Cómo se presenta el resultado? Lista, párrafos, tabla, paso a paso. Define la estructura para que sea fácil de usar.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Técnicas -->
+  <div class="section" id="tecnicas">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Técnicas avanzadas</h2>
+    </div>
+
+    <div class="technique">
+      <h3>🔗 Chain of Thought (Cadena de razonamiento)</h3>
+      <p>Le pides a la IA que piense paso a paso antes de responder. Ideal para problemas complejos, análisis o matemáticas.</p>
+      <div class="ex-label">Ejemplo</div>
+      <div class="example">Analiza este problema de negocio. Antes de responder, piensa en voz alta: primero identifica el problema raíz, luego considera las causas posibles, después evalúa opciones y finalmente dame tu recomendación.</div>
+    </div>
+
+    <div class="technique">
+      <h3>📚 Few-Shot (Con ejemplos)</h3>
+      <p>Incluyes 2-3 ejemplos del resultado que esperas. La IA aprende el patrón y lo aplica a tu caso.</p>
+      <div class="ex-label">Ejemplo</div>
+      <div class="example">Escribe títulos de blog en este estilo:
+Ejemplo 1: "5 errores que destruyen tu productividad (y cómo evitarlos)"
+Ejemplo 2: "Por qué los mejores CEOs duermen 8 horas"
+Ahora escribe 5 títulos sobre marketing digital.</div>
+    </div>
+
+    <div class="technique">
+      <h3>🎭 Role Playing (Juego de roles)</h3>
+      <p>Haces que la IA actúe como un personaje, cliente, crítico o experto específico para obtener perspectivas únicas.</p>
+      <div class="ex-label">Ejemplo</div>
+      <div class="example">Actúa como mi cliente más escéptico. Acabo de presentarte esta propuesta de valor: [propuesta]. Dame las 5 objeciones más fuertes que tendrías y no te dejes convencer fácilmente.</div>
+    </div>
+
+    <div class="technique">
+      <h3>🔄 Iteración dirigida</h3>
+      <p>En lugar de pedir todo de una vez, construyes la respuesta en iteraciones. Empieza con un borrador y luego refina.</p>
+      <div class="ex-label">Ejemplo de flujo</div>
+      <div class="example">Paso 1: "Dame un esquema de 5 puntos para este artículo."
+Paso 2: "Desarrolla el punto 3 con más detalle."
+Paso 3: "Ahora reescribe ese párrafo con tono más informal."</div>
+    </div>
+
+    <div class="technique">
+      <h3>🎯 Restricciones creativas</h3>
+      <p>Las limitaciones paradójicamente generan más creatividad. Pide respuestas cortas, sin ciertos words, o con restricciones específicas.</p>
+      <div class="ex-label">Ejemplo</div>
+      <div class="example">Explica qué es la inteligencia artificial en exactamente 3 oraciones. Sin tecnicismos. Que lo entienda un niño de 10 años y un CEO al mismo tiempo.</div>
+    </div>
+  </div>
+
+  <!-- 4. Errores -->
+  <div class="section" id="errores">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Errores comunes</h2>
+    </div>
+
+    <div class="mistake">
+      <div class="icon">❌</div>
+      <div>
+        <h3>Ser demasiado vago</h3>
+        <p>"Escríbeme algo sobre marketing" no le da a la IA suficiente información para ser útil.</p>
+        <div class="fix">✓ Fix: especifica el tipo de contenido, audiencia, objetivo y longitud.</div>
+      </div>
+    </div>
+    <div class="mistake">
+      <div class="icon">❌</div>
+      <div>
+        <h3>Pedir todo en un solo prompt</h3>
+        <p>Un prompt con 10 objetivos distintos produce resultados mediocres en cada uno.</p>
+        <div class="fix">✓ Fix: divide en prompts separados o usa iteración dirigida.</div>
+      </div>
+    </div>
+    <div class="mistake">
+      <div class="icon">❌</div>
+      <div>
+        <h3>No definir el formato</h3>
+        <p>Sin formato específico, la IA elige uno que puede no ser el más útil para ti.</p>
+        <div class="fix">✓ Fix: añade siempre "&lt;formato&gt;" con la estructura que necesitas.</div>
+      </div>
+    </div>
+    <div class="mistake">
+      <div class="icon">❌</div>
+      <div>
+        <h3>No iterar</h3>
+        <p>Aceptar la primera respuesta sin refinarla. El primer resultado es un borrador, no el producto final.</p>
+        <div class="fix">✓ Fix: pregunta "¿cómo mejorarías esta respuesta?" o pide variaciones.</div>
+      </div>
+    </div>
+    <div class="mistake">
+      <div class="icon">❌</div>
+      <div>
+        <h3>Ignorar el rol</h3>
+        <p>Sin definir quién responde, la IA usa una voz genérica que carece de perspectiva y profundidad.</p>
+        <div class="fix">✓ Fix: empieza siempre con "Eres un experto en..." y define su experiencia.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Checklist -->
+  <div class="section" id="checklist">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Checklist del buen prompt</h2>
+    </div>
+    <p class="body-text">Antes de enviar tu prompt, revisa esta lista. Cuantos más puntos cumplas, mejor será tu resultado.</p>
+    <ul class="checklist">
+      <li>Definí un rol específico con contexto de experiencia</li>
+      <li>La tarea principal está expresada con un verbo de acción claro</li>
+      <li>Incluí el contexto relevante: audiencia, restricciones, datos clave</li>
+      <li>Especifiqué el tono que quiero en la respuesta</li>
+      <li>Definí el formato del resultado (lista, párrafos, tabla, etc.)</li>
+      <li>El prompt tiene un solo objetivo principal, no múltiples</li>
+      <li>Es lo suficientemente específico como para que no haya ambigüedad</li>
+      <li>Si es complejo, lo dividí en pasos o iteraciones</li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-card">
+    <h3>¿Listo para practicar?</h3>
+    <p>Usa el Constructor Semántico para aplicar todo lo que aprendiste. Las plantillas prediseñadas son un excelente punto de partida.</p>
+    <div class="cta-row">
+      <a class="cta-btn cta-primary" href="prompt-generator.html">🏗️ Ir al Constructor</a>
+      <a class="cta-btn cta-secondary" href="agentes.html">🤖 Crear un Agente</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
